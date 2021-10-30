@@ -28,64 +28,73 @@ def connect():
 def charge(list_of_elements, maximum):
     number = 0
     string = ''.join(list_of_elements)
-    the_biggets_element = {"index": 0, "len": 0} #index
+    upper = True # contains data about randomly chosen action, so true makes 1 word upper
+    the_biggets_element = {"index": 0, "len": 0}
     while len(string) < maximum:
         # add new word
         dictionary = open("./dictionary.txt").read()
         dictionary = dictionary.split('\n')
-        number = random.randint(0, len(dictionary))
-        list_of_elements.append(dictionary[number])
+        number = random.randint(0, int(len(dictionary)-1))
+        # makes the word randomly Upper
+        upper = random.choice([True, False])
+        if upper == True:
+            list_of_elements.append(dictionary[number].upper())
+        else:
+            list_of_elements.append(dictionary[number])
+        #check element for being the biggest so programm can fastly delete it if the massive is too big
+        if len(dictionary[number]) > the_biggets_element["len"]:
+            the_biggets_element['len'] = len(dictionary[number])
+            the_biggets_element['index'] = int(len(list_of_elements) - 1)
+        print(the_biggets_element, number)
         #clear the string form old data to plug new data into it
         string = ''
         string = ''.join(list_of_elements)
     number = 0
     if len(string) > maximum: # database is ready for passwords which are smaller then 51 symbol so it deletes the biggest element
-        for each in list_of_elements:
-            if len(each) > the_biggets_element["len"]:
-                the_biggets_element['len'] = len(each)
-                the_biggets_element['index'] = number
-            number += 1
-        list_of_elements.pop(the_biggets_element['index'])# works correctly
+        try:
+            list_of_elements.pop(the_biggets_element['index'])# works correctly
+        except:
+            while len(string) > maximum:
+                list_of_elements.pop()
+                sring = ''
+                string = ''.join(list_of_elements)
     return list_of_elements #sucess 
 
-def generate_password(special_symbols, prefered_words, CAPS, crypting_key):
+def generate_password(special_symbols, CAPS, crypting_key):
     # special_symbols - t/f allow it or not
     # prefered words - t/f ask user about the words it wants in password
     # CAPS - t/f should password contain upper and downer letters
     # crypting_key - string - crypts the generated password before plugining it into bd and helps to encrypt
-    specials = ["#", "*", "(", ")", "$", "@", "!", "%", "?"]# TODO add more
+    specials = ["!",  "#",  "$", "%", "&", "(", ")", "*" "+", ",", "-", ".", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?", "_", "@", "[", "]", "{", "}"]
     password_list = [] #it will contain all the symbols
     password = ''
     number = 0 #just for a few tasks
     words = "" #for adding prefered words
     if special_symbols == True:
         number = random.randint(0, int(len(specials) - 1))
-        password_list.append(specials[number])
-    if prefered_words == True:
-        words = input("write the words you wnat in your password(50 letters max)")
-        words.split(" ", ", ")# TODO plug new words in to dictionaty.txt
+        password_list.append(specials[number]) 
     # cycle plugs words into password list untils it have 50 symbols
     password_list = charge(password_list, 50)
-    #TODO make random letters Upppder
     random.shuffle(password_list)# mistake is here
     password = ''.join(password_list)
+    print(password)
     return password
 
 id = 491770917
 date = str(datetime.datetime.today()).split()[0]
 
-#password = generate_password(True, False, False, str(id))
+#password = generate_password(True, False, str(id))
 
 # CLI prototype
 # start
 # telegram user prints "/start" and bot check does such user exisit
-while True:
+while True:# cli
     connection = connect()
     cursor = connection.cursor()
     print("what you need? \n[find] - find password by description\n[write] - write new password into database\n[update password] - update already existed password")
     action = input(":")
     if action == "[find]":
-        description = input("type description") # TODO make search by description
+        description = input("type description") # search by description
         cursor.execute("SELECT password FROM user" + str(id) + " WHERE description LIKE'%" + description + "%';")
         print(cursor.fetchall())
     elif action == "[write]":
@@ -95,8 +104,8 @@ while True:
         if new_or_old == "[save old]":
             password = input("type the password you want to save")
         elif new_or_old == "[generate new]":
-            # TODO ask for spesial symbols prefered words and caps
-            password = generate_password(True, False, False, str(id))
+            # TODO ask for spesial symbols and caps
+            password = generate_password(True, False, str(id))
             print('your password is ' + password)
         else:
             print("something is wrong. :( please try push one of the buttons")
@@ -120,7 +129,7 @@ while True:
             cursor.execute("INSERT INTO user" + str(id) + " (date, password, description) VALUES ('" + str(date) + "', '" + str(password) + "', '" + str(description) + "');")
             connection.commit()
     elif action == "[update password]": #update old password
-        password = generate_password(True, False, False, str(id))
+        password = generate_password(True, False, str(id))
         description = input("write something from description")
         try:
             cursor.execute("UPDATE user" + str(id) + " SET password = '" + password + "', date = '" + date + "' WHERE description LIKE '%" + description + "%';")
