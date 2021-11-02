@@ -25,6 +25,37 @@ def connect():
         print(f"'{e}'")
     return connection
 
+def write(password, description, id, cursor):
+    # sql request
+    try:
+        cursor.execute("INSERT INTO user" + str(id) + " (date, password, description) VALUES ('" + str(date) + "', '" + str(password) + "', '" + str(description) + "');")
+        connection.commit()
+    except:# there is no table for this user so create it
+        cursor = connection.cursor()
+        cursor.execute("CREATE TABLE user" + str(id) + " ( \
+            id int AUTO_INCREMENT NOT NULL, \
+            date date NOT NULL, \
+            password varchar(50) NOT NULL, \
+            description varchar(255) DEFAULT NULL, \
+            PRIMARY KEY (id);")
+        connection.commit()
+        cursor.execute("INSERT INTO users VALUES (" + str(id) + ");")
+        connection.commit()
+        #insert data again
+        cursor.execute("INSERT INTO user" + str(id) + " (date, password, description) VALUES ('" + str(date) + "', '" + str(password) + "', '" + str(description) + "');")
+        connection.commit()
+
+def find(description, id):
+    cursor.execute("SELECT password FROM user" + str(id) + " WHERE description LIKE'%" + description + "%';")
+    print(cursor.fetchall())
+
+def update_password(password, description, id, date):
+    try:
+        cursor.execute("UPDATE user" + str(id) + " SET password = '" + password + "', date = '" + date + "' WHERE description LIKE '%" + description + "%';")
+        connection.commit()
+    except:
+        print("something is wrong with your description")
+
 def charge(list_of_elements, maximum):
     number = 0
     string = ''.join(list_of_elements)
@@ -32,7 +63,7 @@ def charge(list_of_elements, maximum):
     the_biggets_element = {"index": 0, "len": 0}
     while len(string) < maximum:
         # add new word
-        dictionary = open("./dictionary.txt").read()
+        dictionary = open("./dependencies/dictionary.txt").read()
         dictionary = dictionary.split('\n')
         number = random.randint(0, int(len(dictionary)-1))
         # makes the word randomly Upper
@@ -95,8 +126,7 @@ while True:# cli
     action = input(":")
     if action == "[find]":
         description = input("type description") # search by description
-        cursor.execute("SELECT password FROM user" + str(id) + " WHERE description LIKE'%" + description + "%';")
-        print(cursor.fetchall())
+        find(description, id)
     elif action == "[write]":
         print("do you want to save old password or generate new one?")
         print("[save old]\n[generate new]")
@@ -110,32 +140,11 @@ while True:# cli
         else:
             print("something is wrong. :( please try push one of the buttons")
         description = input("type description for your password, for example [facebook.com]")
-        # sql request
-        try:
-            cursor.execute("INSERT INTO user" + str(id) + " (date, password, description) VALUES ('" + str(date) + "', '" + str(password) + "', '" + str(description) + "');")
-            connection.commit()
-        except:# there is no table for this user so create it
-            cursor = connection.cursor()
-            cursor.execute("CREATE TABLE user" + str(id) + " ( \
-                id int AUTO_INCREMENT NOT NULL, \
-                date date NOT NULL, \
-                password varchar(50) NOT NULL, \
-                description varchar(255) DEFAULT NULL, \
-                PRIMARY KEY (id);")
-            connection.commit()
-            cursor.execute("INSERT INTO users VALUES (" + str(id) + ");")
-            connection.commit()
-            #insert data again
-            cursor.execute("INSERT INTO user" + str(id) + " (date, password, description) VALUES ('" + str(date) + "', '" + str(password) + "', '" + str(description) + "');")
-            connection.commit()
+        write(password, description, id, cursor)
     elif action == "[update password]": #update old password
         password = generate_password(True, False, str(id))
         description = input("write something from description")
-        try:
-            cursor.execute("UPDATE user" + str(id) + " SET password = '" + password + "', date = '" + date + "' WHERE description LIKE '%" + description + "%';")
-            connection.commit()
-        except:
-            print("something is wrong with your description")
+        update_password(password, description, id, date)
     else:
         print("please tap the button, do not send text")
 
