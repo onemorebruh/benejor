@@ -15,7 +15,7 @@
 [] connect it all to the telegram bot
 [] make docker container
 [] unit tests
-- [] `pasword_generator` test
+- [x] `pasword_generator` test
 - [] `telegram_bot` test
 - [] `find` test
 - [] `write` test

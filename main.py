@@ -26,6 +26,7 @@ def connect():
     return connection
 
 def write(password, description, id, cursor):
+    date = str(datetime.datetime.today()).split()[0]
     # sql request
     try:
         cursor.execute("INSERT INTO user" + str(id) + " (date, password, description) VALUES ('" + str(date) + "', '" + str(password) + "', '" + str(description) + "');")
@@ -49,7 +50,8 @@ def find(description, id):
     cursor.execute("SELECT password FROM user" + str(id) + " WHERE description LIKE'%" + description + "%';")
     print(cursor.fetchall())
 
-def update_password(password, description, id, date):
+def update_password(password, description, id):
+    date = str(datetime.datetime.today()).split()[0]
     try:
         cursor.execute("UPDATE user" + str(id) + " SET password = '" + password + "', date = '" + date + "' WHERE description LIKE '%" + description + "%';")
         connection.commit()
@@ -112,39 +114,38 @@ def generate_password(special_symbols, CAPS, crypting_key):
     return password
 
 id = 491770917
-date = str(datetime.datetime.today()).split()[0]
 
 #password = generate_password(True, False, str(id))
 
 # CLI prototype
 # start
 # telegram user prints "/start" and bot check does such user exisit
-while True:# cli
-    connection = connect()
-    cursor = connection.cursor()
-    print("what you need? \n[find] - find password by description\n[write] - write new password into database\n[update password] - update already existed password")
-    action = input(":")
-    if action == "[find]":
-        description = input("type description") # search by description
-        find(description, id)
-    elif action == "[write]":
-        print("do you want to save old password or generate new one?")
-        print("[save old]\n[generate new]")
-        new_or_old = input(":")
-        if new_or_old == "[save old]":
-            password = input("type the password you want to save")
-        elif new_or_old == "[generate new]":
-            # TODO ask for spesial symbols and caps
+if __name__ == "__main__":
+    while True:# cli
+        connection = connect()
+        cursor = connection.cursor()
+        print("what you need? \n[find] - find password by description\n[write] - write new password into database\n[update password] - update already existed password")
+        action = input(":")
+        if action == "[find]":
+            description = input("type description") # search by description
+            find(description, id)
+        elif action == "[write]":
+            print("do you want to save old password or generate new one?")
+            print("[save old]\n[generate new]")
+            new_or_old = input(":")
+            if new_or_old == "[save old]":
+                password = input("type the password you want to save")
+            elif new_or_old == "[generate new]":
+                # TODO ask for spesial symbols and caps
+                password = generate_password(True, False, str(id))
+                print('your password is ' + password)
+            else:
+                print("something is wrong. :( please try push one of the buttons")
+            description = input("type description for your password, for example [facebook.com]")
+            write(password, description, id, cursor)
+        elif action == "[update password]": #update old password
             password = generate_password(True, False, str(id))
-            print('your password is ' + password)
+            description = input("write something from description")
+            update_password(password, description, id)
         else:
-            print("something is wrong. :( please try push one of the buttons")
-        description = input("type description for your password, for example [facebook.com]")
-        write(password, description, id, cursor)
-    elif action == "[update password]": #update old password
-        password = generate_password(True, False, str(id))
-        description = input("write something from description")
-        update_password(password, description, id, date)
-    else:
-        print("please tap the button, do not send text")
-
+            print("please tap the button, do not send text")
