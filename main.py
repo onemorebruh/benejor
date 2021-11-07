@@ -45,18 +45,20 @@ def write(password, description, id, cursor):
         #insert data again
         cursor.execute("INSERT INTO user" + str(id) + " (date, password, description) VALUES ('" + str(date) + "', '" + str(password) + "', '" + str(description) + "');")
         connection.commit()
+        return "succes"
 
 def find(description, id):
     cursor.execute("SELECT password FROM user" + str(id) + " WHERE description LIKE'%" + description + "%';")
-    print(cursor.fetchall())
+    return cursor.fetchall()
 
 def update_password(password, description, id):
     date = str(datetime.datetime.today()).split()[0]
     try:
         cursor.execute("UPDATE user" + str(id) + " SET password = '" + password + "', date = '" + date + "' WHERE description LIKE '%" + description + "%';")
         connection.commit()
+        return "succes"
     except:
-        print("something is wrong with your description")
+        return "something is wrong with your description"
 
 def charge(list_of_elements, maximum):
     number = 0
@@ -78,7 +80,6 @@ def charge(list_of_elements, maximum):
         if len(dictionary[number]) > the_biggets_element["len"]:
             the_biggets_element['len'] = len(dictionary[number])
             the_biggets_element['index'] = int(len(list_of_elements) - 1)
-        print(the_biggets_element, number)
         #clear the string form old data to plug new data into it
         string = ''
         string = ''.join(list_of_elements)
@@ -128,7 +129,7 @@ if __name__ == "__main__":
         action = input(":")
         if action == "[find]":
             description = input("type description") # search by description
-            find(description, id)
+            print(find(description, id))
         elif action == "[write]":
             print("do you want to save old password or generate new one?")
             print("[save old]\n[generate new]")
@@ -142,10 +143,10 @@ if __name__ == "__main__":
             else:
                 print("something is wrong. :( please try push one of the buttons")
             description = input("type description for your password, for example [facebook.com]")
-            write(password, description, id, cursor)
+            print(write(password, description, id, cursor))
         elif action == "[update password]": #update old password
             password = generate_password(True, False, str(id))
             description = input("write something from description")
-            update_password(password, description, id)
+            print(update_password(password, description, id))
         else:
             print("please tap the button, do not send text")
