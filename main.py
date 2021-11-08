@@ -25,39 +25,37 @@ def connect():
         print(f"'{e}'")
     return connection
 
-def write(password, description, id, cursor):
+def write(password, description, id, connection):
+    cursor = connection.cursor()
     date = str(datetime.datetime.today()).split()[0]
     # sql request
     try:
         cursor.execute("INSERT INTO user" + str(id) + " (date, password, description) VALUES ('" + str(date) + "', '" + str(password) + "', '" + str(description) + "');")
         connection.commit()
     except:# there is no table for this user so create it
-        cursor = connection.cursor()
-        cursor.execute("CREATE TABLE user" + str(id) + " ( \
-            id int AUTO_INCREMENT NOT NULL, \
-            date date NOT NULL, \
-            password varchar(50) NOT NULL, \
-            description varchar(255) DEFAULT NULL, \
-            PRIMARY KEY (id);")
+        cursor.execute("CREATE TABLE user" + str(id) + " (id int AUTO_INCREMENT NOT NULL, date date NOT NULL, password varchar(50) NOT NULL, description varchar(255) DEFAULT NULL, PRIMARY KEY (id));")
         connection.commit()
         cursor.execute("INSERT INTO users VALUES (" + str(id) + ");")
         connection.commit()
         #insert data again
         cursor.execute("INSERT INTO user" + str(id) + " (date, password, description) VALUES ('" + str(date) + "', '" + str(password) + "', '" + str(description) + "');")
         connection.commit()
-        return "succes"
+    return "succes"
 
-def find(description, id):
+def find(description, id, connection):
+    cursor = connection.cursor()
     cursor.execute("SELECT password FROM user" + str(id) + " WHERE description LIKE'%" + description + "%';")
     return cursor.fetchall()
 
-def update_password(password, description, id):
+def update_password(password, description, id, connection):
+    cursor = connection.cursor()
     date = str(datetime.datetime.today()).split()[0]
     try:
         cursor.execute("UPDATE user" + str(id) + " SET password = '" + password + "', date = '" + date + "' WHERE description LIKE '%" + description + "%';")
         connection.commit()
         return "succes"
-    except:
+    except Error as e:
+        print(f'{e}')
         return "something is wrong with your description"
 
 def charge(list_of_elements, maximum):

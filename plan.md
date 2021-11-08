@@ -14,14 +14,11 @@
 - [x] turn all users actions to functions so they can be tested
 [] connect it all to the telegram bot
 [] make docker container
-[in progress] unit tests
+[mvp] unit tests
 - [x] `pasword_generator` test
 - [] `telegram_bot` test
 - [x] `find` test
 - [x] `write` test
 - [x] `update_password` test
 - [x] rewrite find, write, update functions so they will be better at tests
-- [] fix pronlem -> none pf tests lunches.(script is like empty)
-> possible reasons for such error
-> 1. global variables
-> 2. too many tests in one file
+- [x] fix pronlem -> none pf tests lunches.(script is like empty)
