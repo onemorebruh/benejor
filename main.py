@@ -10,15 +10,16 @@ import random
 import mysql.connector
 from mysql.connector import Error
 import datetime
+from config import *
 
-def connect():
+def connect(host, user, passwd, database):
     connection = None
     try:
         connection = mysql.connector.connect( 
-            host="127.0.0.1",
-            user="tgBot",
-            passwd="L3t M3 1n!",
-            database="password_bot"
+            host=host,
+            user=user,
+            passwd=passwd,
+            database=database
         )
         print("mysql connected")
     except Error as e:

@@ -1,5 +1,6 @@
 # TODO
 [] encrypting with id as a key
+[] add validation so ``'`";`` are unavalibale to be in password
 [x] password generating algoritm
 - [x] add more special symbols
 - [x] make random letters upper
@@ -13,10 +14,10 @@
 - [] make abbility to add words into dictionary and use this words for password generating
 - [x] turn all users actions to functions so they can be tested
 [] connect it all to the telegram bot
+- [] ask user to change password generating settings
 [] make docker container
-[mvp] unit tests
+[x] unit tests
 - [x] `pasword_generator` test
-- [] `telegram_bot` test
 - [x] `find` test
 - [x] `write` test
 - [x] `update_password` test
