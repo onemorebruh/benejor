@@ -36,7 +36,7 @@ def write(password, description, id, connection):
     except:# there is no table for this user so create it
         cursor.execute("CREATE TABLE user" + str(id) + " (id int AUTO_INCREMENT NOT NULL, date date NOT NULL, password varchar(50) NOT NULL, description varchar(255) DEFAULT NULL, PRIMARY KEY (id));")
         connection.commit()
-        cursor.execute("INSERT INTO users VALUES (" + str(id) + ");")
+        cursor.execute("INSERT INTO users (id) VALUES (" + str(id) + ");")
         connection.commit()
         #insert data again
         cursor.execute("INSERT INTO user" + str(id) + " (date, password, description) VALUES ('" + str(date) + "', '" + str(password) + "', '" + str(description) + "');")
@@ -98,7 +98,7 @@ def generate_password(special_symbols, CAPS, crypting_key):
     # prefered words - t/f ask user about the words it wants in password
     # CAPS - t/f should password contain upper and downer letters
     # crypting_key - string - crypts the generated password before plugining it into bd and helps to encrypt
-    specials = ["!",  "#",  "$", "%", "&", "(", ")", "*" "+", ",", "-", ".", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?", "_", "@", "[", "]", "{", "}"]
+    specials = ["!",  "#",  "$", "%", "&", "(", ")", "*" "+", ",", "-", ".", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", "<", "=", ">", "?", "_", "@", "[", "]", "{", "}"]
     password_list = [] #it will contain all the symbols
     password = ''
     number = 0 #just for a few tasks
@@ -113,7 +113,47 @@ def generate_password(special_symbols, CAPS, crypting_key):
     print(password)
     return password
 
-id = 491770917
+def validate(password):
+    password = password.replace("`", "")
+    password = password.replace(";", "")
+    password = password.replace('"', "")
+    password = password.replace("'", "") 
+    password = password.replace(" ", "")
+    return password
+
+def get_settings(id, connection):
+    cursor = connection.cursor()
+    #try:
+        # get special symbols' value
+    cursor.execute("SELECT specials FROM users WHERE id = " + str(id) + ";")
+    spec = cursor.fetchall()
+        # get caps' value
+    cursor.execute("SELECT caps FROM users WHERE id = " + str(id) + ";")
+    up = cursor.fetchall()
+    #except:
+    #    spec, up = "T", "T"
+    if "T" in str(spec):
+        spec = True
+    else:
+        spec = False
+    if "T" in str(up):
+        up = True
+    else:
+        up = False
+    return spec, up
+
+def set_setting(id, connection, setting, tf):
+    cursor = connection.cursor()
+    try:
+        cursor.execute("UPDATE users SET " + str(setting) + " = '" + tf + "' WHERE id = " + str(id) + ";")
+        connection.commit()
+        return f"your {setting} is {tf} now"
+    except Error as e:
+        print(f'{e}')
+        return "something is wrong in changing settings"
+
+id = 491770917# mine id
+
 
 #password = generate_password(True, False, str(id))
 

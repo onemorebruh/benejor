@@ -1,5 +1,5 @@
 # telegram
-token = ""
+token = "2122922830:AAFKQGImfHqw3wAdO7xGzLvTO8mLjXnCXPo"
 # mysql
 host = "127.0.0.1"
 user = "tgBot"

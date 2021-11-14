@@ -4,3 +4,4 @@
 *.backup
 *token.txt
 __pycache__
+config.py

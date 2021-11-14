@@ -29,6 +29,26 @@ class test_(unittest.TestCase):
         password = generate_password(True, True, "test")
         status = update_password(password, "TEST", 0, connection)
         self.assertEqual(status, "succes", "updating failed") 
-        
+
+    def test_get_settings_(self):
+        connection = connect(host, user, passwd, database)
+        test_spec, test_up = get_settings(0, connection)
+        self.assertTrue(test_spec, "you have got the wrong data from database")
+        self.assertTrue(test_up, "you have got the wrong data from database")
+
+    def test_validator_(self):
+        password = "'`; SAILhemetalGAVEthatWIND$wirefewsmallchildCLASSfood"
+        password = validate(password)
+        self.assertNotIn(password, " ", "password have space in it")
+        self.assertNotIn(password, "`", "password have ` in it")
+        self.assertNotIn(password, ";", "password have ; in it")
+        self.assertNotIn(password, "'", "password have ' in it")
+        self.assertNotIn(password, '"', 'password have " in it')
+
+    def test_set_setting(self):
+        connection = connect(host, user, passwd, database)
+        status = set_setting(0, connection, "caps", "F")
+        self.assertIsNot(status, "something is wrong in changing settings")
+
 if __name__ == "__main__":
     unittest.main()
