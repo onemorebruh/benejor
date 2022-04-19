@@ -1,0 +1,39 @@
+#!/bin/bash
+echo '#telegram' >> config.py
+# get token
+printf '[1/7]paste the token here\n'
+read -r token
+echo "token = '$token'" >> config.py
+# get password
+echo '#mysql' >> config.py
+printf '[2/7]write password of database\n'
+read -r password
+echo "passwd = '$password'" >> config.py
+# get db name
+printf '[3/7]type the name of database\n'
+read -r dbname
+echo "database = '$dbname'" >> config.py
+# get username
+printf '[4/7]type database user'\''s name\n'
+read -r username
+echo "user = '$username'" >> config.py
+# get host address
+printf '[5/7]paste database'\''s addres\n'
+read -r host
+echo "host = '$host'" >> config.py
+# get path to dictionary
+printf '[6/7]paste NOTabsolute pass to the dictionary\n'
+read -r path
+# setup mysql database
+printf '[7/7]print mysql password of root user\n'
+read -r mysqlPassword
+echo "CREATE DATABASE $dbname;
+USE $dbname
+CREATE TABLE example (id int AUTO_INCREMENT NOT NULL,date date NOT NULL, password varchar(200) NOT NULL, description varchar(255) DEFAULT NULL, PRIMARY KEY (id));
+CREATE TABLE users (id int,specials varchar(1) DEFAULT 'T',caps varchar(1) DEFAULT 'T', PRIMARY KEY (id));
+CREATE TABLE dictionary (id int NOT NULL AUTO_INCREMENT, word varchar(15) UNIQUE NOT NULL, PRIMARY KEY (id));" > dependencies/sql_dump.sql
+sudo mysql -h $host -u root -p$mysqlPassword < dependencies/sql_dump.sql
+# load dictionary to database
+sleep 10
+python3 load_dictionary.py $path
+# launch bot
