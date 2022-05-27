@@ -18,7 +18,7 @@ dictionary = []
 
 # password generator
 
-def charge(list_of_elements, maximum, caps):
+def charge(list_of_elements: list, maximum: int, caps: bool):
     global host, user, passwd, database
     connection = connect(host, user, passwd, database)
     string = ''.join(list_of_elements)
@@ -68,7 +68,7 @@ def charge(list_of_elements, maximum, caps):
     return list_of_elements  # success
 
 
-def generate_password(special_symbols, caps):
+def generate_password(special_symbols: bool, caps: bool):
     # special_symbols - t/f allow it or not
 
     # preferred words - t/f ask user about the words it wants in password
@@ -91,7 +91,7 @@ def generate_password(special_symbols, caps):
     return password
 
 
-def validate(password):
+def validate(password: str):
     password = password.replace("`", "")
     password = password.replace(";", "")
     password = password.replace('"', "")
@@ -103,7 +103,7 @@ def validate(password):
 
 # using database
 
-def connect(host, user, passwd, database):
+def connect(host: str, user: str, passwd: str, database: str):
     connection = None
     try:
         connection = mysql.connector.connect(
@@ -117,7 +117,7 @@ def connect(host, user, passwd, database):
     return connection
 
 
-def write(password, description, _id, connection):
+def write(password: str, description: str, _id: int, connection):
     cursor = connection.cursor()
     date = str(datetime.datetime.today()).split()[0]  # data format for mysql
     password = encrypt(password, _id)
@@ -129,7 +129,7 @@ def write(password, description, _id, connection):
     return "success"
 
 
-def find(description, _id, connection):
+def find(description: str, _id: int, connection):
     i = 0
     cursor = connection.cursor()
     cursor.execute("SELECT password FROM user" + str(_id) + " WHERE description LIKE'%" + description + "%';")
@@ -141,7 +141,7 @@ def find(description, _id, connection):
     return found_passwords
 
 
-def update_password(password, description, _id, connection):
+def update_password(password: str, description: str, _id: int, connection):
     cursor = connection.cursor()
     date = str(datetime.datetime.today()).split()[0]
     password = encrypt(password, _id)
@@ -156,7 +156,7 @@ def update_password(password, description, _id, connection):
         return "something is wrong with your description"
 
 
-def get_settings(_id, connection):
+def get_settings(_id: int, connection):
     cursor = connection.cursor()
     # try:
     # get special symbols' value
@@ -178,7 +178,7 @@ def get_settings(_id, connection):
     return spec, up
 
 
-def set_setting(_id, connection, setting, tf):
+def set_setting(_id: int, connection, setting: str, tf: str):
     cursor = connection.cursor()
     try:
         cursor.execute("UPDATE users SET " + str(setting) + " = '" + tf + "' WHERE id = " + str(_id) + ";")
@@ -189,7 +189,7 @@ def set_setting(_id, connection, setting, tf):
         return "something is wrong in changing settings"
 
 
-def create_user(_id, connection):
+def create_user(_id: int, connection):
     cursor = connection.cursor()
     cursor.execute("CREATE TABLE user" + str(
         _id) + "(id int AUTO_INCREMENT NOT NULL, date date NOT NULL, password varchar(200) NOT NULL, description "
@@ -200,7 +200,7 @@ def create_user(_id, connection):
     return "success"
 
 
-def delete_user(_id, connection):
+def delete_user(_id: int, connection):
     cursor = connection.cursor()
     cursor.execute("DROP TABLE user" + str(_id) + ";")
     connection.commit()
@@ -211,7 +211,7 @@ def delete_user(_id, connection):
 
 # crypting
 
-def encrypt(data, key):
+def encrypt(data: str, key:int):
     encoded_data = data
     key = [int(x) for x in str(key)]
     i = 0
@@ -233,7 +233,7 @@ def encrypt(data, key):
     return encoded_data
 
 
-def decrypt(data, key):
+def decrypt(data: str, key: int):
     key = [int(x) for x in str(key)]
     i = 0
     j = 0
