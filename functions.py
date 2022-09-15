@@ -10,7 +10,7 @@
 import random
 import mysql.connector
 from mysql.connector import Error
-import datetime
+import random
 from config import *
 
 dictionary = []
@@ -64,7 +64,6 @@ def charge(list_of_elements: list, maximum: int, caps: bool):
             while len(string) > maximum:
                 list_of_elements.pop()
                 string = ''.join(list_of_elements)
-    print(list_of_elements)
     return list_of_elements  # success
 
 
@@ -87,7 +86,6 @@ def generate_password(special_symbols: bool, caps: bool):
         password_list.append(specials[number])
     random.shuffle(password_list)  # mistake is here
     password = ''.join(password_list)
-    print(password)
     return password
 
 
@@ -97,7 +95,6 @@ def validate(password: str):
     password = password.replace('"', "")
     password = password.replace("'", "")
     password = password.replace(" ", "")
-    print(password)
     return password
 
 
@@ -117,98 +114,6 @@ def connect(host: str, user: str, passwd: str, database: str):
     return connection
 
 
-def write(password: str, description: str, _id: int, connection):
-    cursor = connection.cursor()
-    date = str(datetime.datetime.today()).split()[0]  # data format for mysql
-    password = encrypt(password, _id)
-    # sql request
-    cursor.execute(
-        "INSERT INTO user" + str(_id) + " (date, password, description) VALUES ('" + str(date) + "', '" + str(
-            password) + "', '" + str(description) + "');")
-    connection.commit()
-    return "success"
-
-
-def find(description: str, _id: int, connection):
-    i = 0
-    cursor = connection.cursor()
-    cursor.execute("SELECT password FROM user" + str(_id) + " WHERE description LIKE'%" + description + "%';")
-    found_passwords = cursor.fetchall()
-    while i < len(found_passwords):
-        found_passwords[i] = str(found_passwords[i]).replace("(", "").replace(")", "").replace("'", "").replace(",", "")
-        found_passwords[i] = decrypt(found_passwords[i], _id)
-        i += 1
-    return found_passwords
-
-
-def update_password(password: str, description: str, _id: int, connection):
-    cursor = connection.cursor()
-    date = str(datetime.datetime.today()).split()[0]
-    password = encrypt(password, _id)
-    try:
-        cursor.execute("UPDATE user" + str(
-            _id) + " SET password = '" + password + "', date = '" + date + "' WHERE description LIKE '%" + description \
-                       + "%';")
-        connection.commit()
-        return "success"
-    except Error as e:
-        print(f'{e}')
-        return "something is wrong with your description"
-
-
-def get_settings(_id: int, connection):
-    cursor = connection.cursor()
-    # try:
-    # get special symbols' value
-    cursor.execute("SELECT specials FROM users WHERE id = " + str(_id) + ";")
-    spec = cursor.fetchall()
-    # get caps' value
-    cursor.execute("SELECT caps FROM users WHERE id = " + str(_id) + ";")
-    up = cursor.fetchall()
-    # except:
-    #    spec, up = "T", "T"
-    if "T" in str(spec):
-        spec = True
-    else:
-        spec = False
-    if "T" in str(up):
-        up = True
-    else:
-        up = False
-    return spec, up
-
-
-def set_setting(_id: int, connection, setting: str, tf: str):
-    cursor = connection.cursor()
-    try:
-        cursor.execute("UPDATE users SET " + str(setting) + " = '" + tf + "' WHERE id = " + str(_id) + ";")
-        connection.commit()
-        return f"your {setting} is {tf} now"
-    except Error as e:
-        print(f'{e}')
-        return "something is wrong in changing settings"
-
-
-def create_user(_id: int, connection):
-    cursor = connection.cursor()
-    cursor.execute("CREATE TABLE user" + str(
-        _id) + "(id int AUTO_INCREMENT NOT NULL, date date NOT NULL, password varchar(200) NOT NULL, description "
-               "varchar(255) DEFAULT NULL, PRIMARY KEY (id));")
-    connection.commit()
-    cursor.execute("INSERT INTO users (id) VAlUES (" + str(_id) + ");")
-    connection.commit()
-    return "success"
-
-
-def delete_user(_id: int, connection):
-    cursor = connection.cursor()
-    cursor.execute("DROP TABLE user" + str(_id) + ";")
-    connection.commit()
-    cursor.execute("DELETE FROM users WHERE id = " + str(_id) + ";")
-    connection.commit()
-    return "success"
-
-
 # crypting
 
 def encrypt(data: str, key:int):
@@ -225,7 +130,7 @@ def encrypt(data: str, key:int):
         j += 1
     i = 0
     while i < len(crypted_data):
-        crypted_data[i] = str(crypted_data[i]) + "c"
+        crypted_data[i] = str(crypted_data[i]) + random.choice(["A", "B", "C", "D", "E", "F"])
         i += 1
     encoded_data = str(crypted_data)
     encoded_data = validate(encoded_data)
@@ -237,9 +142,10 @@ def decrypt(data: str, key: int):
     key = [int(x) for x in str(key)]
     i = 0
     j = 0
-    # decrypting 
-    encrypted_data = data.split("c")
-    print(encrypted_data)
+    # convert string to array of numbers
+    encrypted_data = data.replace("A", " ").replace("B", " ").replace("C", " ").replace("D", " ").replace("E", " ").replace("F", " ")
+    encrypted_data = encrypted_data.split(" ")
+    # math changes numbers to correct number for each sign
     while i < (len(encrypted_data) - 1):
         if j >= len(key):
             j = 0
