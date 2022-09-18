@@ -27,11 +27,12 @@ read -r path
 # setup mysql database
 printf '[7/7]print mysql password of root user\n'
 read -r mysqlPassword
-echo "CREATE DATABASE $dbname;
 USE $dbname
-CREATE TABLE example (id int AUTO_INCREMENT NOT NULL,date date NOT NULL, password varchar(200) NOT NULL, description varchar(255) DEFAULT NULL, PRIMARY KEY (id));
-CREATE TABLE users (id int,specials tinyint(1) DEFAULT 1,caps tinyint(1) DEFAULT 1, PRIMARY KEY (id));
-CREATE TABLE dictionary (id int NOT NULL AUTO_INCREMENT, word varchar(15) UNIQUE NOT NULL, PRIMARY KEY (id));" > dependencies/sql_dump.sql
+echo "
+USE benejor
+CREATE TABLE user (id int,specials tinyint(1) DEFAULT 1,caps tinyint(1) DEFAULT 1, PRIMARY KEY (id));
+CREATE TABLE dictionary (id int NOT NULL AUTO_INCREMENT, word varchar(15) UNIQUE NOT NULL, PRIMARY KEY (id));
+CREATE TABLE password (id int AUTO_INCREMENT NOT NULL, user int NOT NULL, password text NOT NULL, description varchar(255) NOT, PRIMARY KEY (id));" > dependencies/sql_dump.sql
 sudo mysql -h $host -u root -p$mysqlPassword < dependencies/sql_dump.sql
 # load dictionary to database
 sleep 10

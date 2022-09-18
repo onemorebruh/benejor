@@ -18,7 +18,7 @@ dictionary = []
 
 # password generator
 
-def charge(list_of_elements: list, maximum: int, caps: bool):
+def charge(list_of_elements: list, maximum: int, caps: int) -> str:
     global host, user, passwd, database
     connection = connect(host, user, passwd, database)
     string = ''.join(list_of_elements)
@@ -37,7 +37,7 @@ def charge(list_of_elements: list, maximum: int, caps: bool):
 
         number = random.randint(0, len(dictionary) - 1)
         # makes the word randomly Upper
-        if caps:
+        if caps == 1:
             upper = random.choice([True, False])
             if upper:
                 list_of_elements.append(str(dictionary[number]).upper())
@@ -67,7 +67,7 @@ def charge(list_of_elements: list, maximum: int, caps: bool):
     return list_of_elements  # success
 
 
-def generate_password(special_symbols: bool, caps: bool):
+def generate_password(special_symbols: int, caps: int) -> str:
     # special_symbols - t/f allow it or not
 
     # preferred words - t/f ask user about the words it wants in password
@@ -81,7 +81,7 @@ def generate_password(special_symbols: bool, caps: bool):
     number = 0  # just for a few tasks
     # cycle plugs words into password list until it have 50 symbols
     password_list = charge(password_list, 32, caps)
-    if special_symbols:
+    if special_symbols == 1:
         number = random.randint(0, int(len(specials) - 1))
         password_list.append(specials[number])
     random.shuffle(password_list)  # mistake is here
@@ -89,7 +89,7 @@ def generate_password(special_symbols: bool, caps: bool):
     return password
 
 
-def validate(password: str):
+def validate(password: str) -> str:
     password = password.replace("`", "")
     password = password.replace(";", "")
     password = password.replace('"', "")
@@ -100,7 +100,7 @@ def validate(password: str):
 
 # using database
 
-def connect(host: str, user: str, passwd: str, database: str):
+def connect(host: str, user: str, passwd: str, database: str) -> mysql.connector.connection:
     connection = None
     try:
         connection = mysql.connector.connect(
@@ -116,7 +116,7 @@ def connect(host: str, user: str, passwd: str, database: str):
 
 # crypting
 
-def encrypt(data: str, key:int):
+def encrypt(data: str, key:int) -> str:
     encoded_data = data
     key = [int(x) for x in str(key)]
     i = 0
@@ -138,7 +138,7 @@ def encrypt(data: str, key:int):
     return encoded_data
 
 
-def decrypt(data: str, key: int):
+def decrypt(data: str, key: int) -> str:
     key = [int(x) for x in str(key)]
     i = 0
     j = 0
