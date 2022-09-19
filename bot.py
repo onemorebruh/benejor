@@ -107,7 +107,10 @@ def write_existed_password(message: telebot.types.Message):  # writes password t
     _id = message.from_user.id
     password = validate(message.text)
     cursor.execute(
-        f'INSERT INTO password (user, password, description) VALUES ({_id}, "{encrypt(password, _id)}", "{global_user_table[_id].description}");')  # save password in database
+        f"""INSERT INTO password 
+        (user, password, description) 
+        VALUES 
+        ({_id}, "{encrypt(password, _id)}", "{global_user_table[_id].description}");""")  # save password in database
     connection.commit()
     bot.send_message(message.from_user.id, f"password is {password}")
     bot.send_message(message.from_user.id, "password is successfully saved", reply_markup=basicMarkup)
@@ -120,7 +123,10 @@ def update_existed_password(message: telebot.types.Message):  # writes password 
     _id = message.from_user.id
     password = validate(message.text)
     cursor.execute(
-        f'UPDATE password SET password = "{encrypt(password, _id)}" WHERE user = {_id} AND description LIKE "%{global_user_table[_id].description}%";')  # save password in database
+        f"""UPDATE password 
+        SET password = '{encrypt(password, _id)}' 
+        WHERE user = {_id} AND 
+        description LIKE '%{global_user_table[_id].description}%';""")  # save password in database
     connection.commit()
     bot.send_message(message.from_user.id, f"password is {password}")
     bot.send_message(message.from_user.id, "password is successfully saved", reply_markup=basicMarkup)
@@ -141,8 +147,11 @@ def write_password(
         # generate password
         special_symbols, uppercase = get_settings(message)  # get settings
         password = generate_password(special_symbols, uppercase)  # generate password
-        cursor.execute(
-            f'INSERT INTO password (user, password, description) VALUES ({_id}, "{encrypt(password, _id)}", "{global_user_table[_id].description}");')  # save password in database
+        cursor.execute(  # save password in database
+            f"""INSERT INTO password 
+            (user, password, description) 
+            VALUES 
+            ({_id}, "{encrypt(password, _id)}', '{global_user_table[_id].description}');""")
         connection.commit()
         bot.send_message(message.from_user.id, f"password is {password}")
         bot.send_message(message.from_user.id, "password is successfully saved", reply_markup=basicMarkup)
@@ -161,7 +170,10 @@ def find_password(message: telebot.types.Message):
     cursor = connection.cursor()
     _id = message.from_user.id
     cursor.execute(
-        f"SELECT password, description FROM password WHERE user={_id} AND description LIKE '%{validate(description)}%'")
+        f"""SELECT password, description 
+        FROM password 
+        WHERE user={_id} AND 
+        description LIKE '%{validate(description)}%'""")
     result = cursor.fetchall()
     for each in result:
         passwords.append(each[0])
@@ -187,7 +199,10 @@ def update_password(message: telebot.types.Message):
         special_symbols, uppercase = get_settings(message)  # get settings
         password = generate_password(special_symbols, uppercase)  # generate password
         cursor.execute(
-            f'UPDATE password SET password = "{encrypt(password, _id)}" WHERE user = {_id} AND description LIKE "%{global_user_table[_id].description}%";')  # save password in database
+            f"""UPDATE password 
+            SET password = '{encrypt(password, _id)}' 
+            WHERE user = {_id} AND 
+            description LIKE '%{global_user_table[_id].description}%';""")  # save password in database
         connection.commit()
         bot.send_message(message.from_user.id, f"password is {password}")
         bot.send_message(message.from_user.id, "password is successfully updated", reply_markup=basicMarkup)
