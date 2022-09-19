@@ -5,6 +5,16 @@ from functions import *
 
 bot = telebot.TeleBot(token)
 
+
+class UserRow:  # saves global information for each user
+    description = ""
+
+    def __init__(self, description):
+        self.description = description
+
+
+global_user_table = {}  # contains UserRows
+
 # basic buttons for bot's work
 basicMarkup = types.ReplyKeyboardMarkup()
 button_write = types.KeyboardButton('✍️  write password')
@@ -26,45 +36,52 @@ button_special_symbols = types.KeyboardButton('special symbols')
 settingsMarkup.row(button_uppercase)
 settingsMarkup.row(button_special_symbols)
 
+# new or existing password buttons
+passwordMarkup = types.ReplyKeyboardMarkup()
+button_new = types.KeyboardButton("generate new password")
+button_existed = types.KeyboardButton("write already existing password")
+# organizing of buttons
+passwordMarkup.row(button_new)
+passwordMarkup.row(button_existed)
+
 
 # functions
-def add_user_to_database(message: telebot.types.Message) -> str:
+def add_user_to_database(message: telebot.types.Message):  # adds user for bot's work
     connection = connect(host, user, passwd, database)
     cursor = connection.cursor()
     _id = message.from_user.id
     try:
-        cursor.execute("INSERT INTO users (id) VALUES (" + str(_id) + ");")
+        cursor.execute("INSERT INTO user (id) VALUES (" + str(_id) + ");")
         connection.commit()
     except IndexError:
         print(f'user number {_id} already exists')
 
 
-def get_settings(message: telebot.types.Message) -> [int, int]:
+def get_settings(message: telebot.types.Message) -> [int, int]:  # get settings for password generating
     connection = connect(host, user, passwd, database)
     cursor = connection.cursor()
     _id = message.from_user.id
-    cursor.execute(f'SELECT specials, caps FROM users WHERE id = {_id};')
+    cursor.execute(f'SELECT specials, caps FROM user WHERE id = {_id};')
     special_symbols, uppercase = cursor.fetchone()
     return special_symbols, uppercase
 
 
-def set_setting(setting: str, message: telebot.types.Message) -> str:
+def set_setting(setting: str, message: telebot.types.Message) -> str:  # changes settings
     connection = connect(host, user, passwd, database)
     cursor = connection.cursor()
     _id = message.from_user.id
-    cursor.execute(f'UPDATE users SET {setting}= !{setting} WHERE id = {_id};')
+    cursor.execute(f'UPDATE user SET {setting}= !{setting} WHERE id = {_id};')
     connection.commit()
-    cursor.execute(f'SELECT {setting} FROM users WHERE id = {_id};')
+    cursor.execute(f'SELECT {setting} FROM user WHERE id = {_id};')
     setting_value = cursor.fetchone()[0]
-    print(setting_value)
-    if (setting_value == 0):
+    if setting_value == 0:
         setting_value = "disabled"
     else:
         setting_value = "enabled"
     return f'your {setting} is {setting_value}'
 
 
-def get_setting_to_update(message: telebot.types.Message):
+def get_setting_to_update(message: telebot.types.Message):  # gets info what setting have to be changed
     if message.text == "special symbols":
         result = set_setting("specials", message)
         bot.send_message(message.from_user.id, result, reply_markup=basicMarkup)
@@ -73,6 +90,57 @@ def get_setting_to_update(message: telebot.types.Message):
         bot.send_message(message.from_user.id, result, reply_markup=basicMarkup)
     else:
         bot.send_message(message.from_user.id, "please use th buttons next time", reply_markup=basicMarkup)
+
+
+def ask_for_description(message: telebot.types.Message):  # writes description to global dictionary
+    global global_user_table
+    description = validate(message.text).lower()  # make description standardized
+    global_user_table[message.from_user.id] = UserRow(description)
+    bot.send_message(message.from_user.id, "are you going to generate new password or save already exiting one?",
+                     reply_markup=passwordMarkup)
+    bot.register_next_step_handler(message, write_password)
+
+
+def write_existed_password(message: telebot.types.Message):  # writes password that bot don't need to generate
+    connection = connect(host, user, passwd, database)
+    cursor = connection.cursor()
+    _id = message.from_user.id
+    password = message.text
+    cursor.execute(
+        f'INSERT INTO password (user, password, description) VALUES ({_id}, "{encrypt(password, _id)}", "{global_user_table[_id].description}");')  # save password in database
+    connection.commit()
+    bot.send_message(message.from_user.id, f"password is {password}")
+    bot.send_message(message.from_user.id, "password is successfully saved", reply_markup=basicMarkup)
+    del global_user_table[_id]
+
+
+def write_password(message: telebot.types.Message): # generates and writes password or delegates it to write_existed_password
+    global global_user_table
+    connection = connect(host, user, passwd, database)
+    cursor = connection.cursor()
+    _id = message.from_user.id
+    if message.text == "write already existing password":
+        # ask for password
+        bot.send_message(message.from_user.id, "please write your password")
+        bot.register_next_step_handler(message, write_existed_password)
+    elif message.text == "generate new password":
+        # generate password
+        special_symbols, uppercase = get_settings(message)  # get settings
+        password = generate_password(special_symbols, uppercase)  # generate password
+        cursor.execute(
+            f'INSERT INTO password (user, password, description) VALUES ({_id}, "{encrypt(password, _id)}", "{global_user_table[_id].description}");')  # save password in database
+        connection.commit()
+        bot.send_message(message.from_user.id, f"password is {password}")
+        bot.send_message(message.from_user.id, "password is successfully saved", reply_markup=basicMarkup)
+        del global_user_table[_id]
+
+    else:
+        bot.send_message(message.from_user.id, "please use th buttons next time", reply_markup=basicMarkup)
+        del global_user_table[_id]
+
+
+def find_password(message: telebot.types.Message):
+    description = message.text
 
 
 # main function
@@ -87,6 +155,16 @@ def main(message):
                          "you anyway can change preset if you run the same bot on your own\nhave a nice experiense",
                          reply_markup=basicMarkup)
 
+    elif message.text == '✍️  write password':
+        # write into database
+        bot.send_message(message.from_user.id, "what the password will be used for?")
+        bot.register_next_step_handler(message, ask_for_description)
+
+    elif message.text == '🔍 find password':
+        # find
+        bot.send_message(message.from_user.id, "please enter something from description")
+        bot.register_next_step_handler(message, find_password)
+
     elif message.text == "⚙️ change generator's settings":
         # change generate_password()'s Trues and Falses
         bot.send_message(message.from_user.id, "please use following buttons to change settings",
@@ -96,6 +174,7 @@ def main(message):
     elif message.text == "❔ get password without saving":
         # get settings
         special_symbols, uppercase = get_settings(message)
+        # generate password
         bot.send_message(message.from_user.id, generate_password(special_symbols, uppercase), reply_markup=basicMarkup)
 
     else:
