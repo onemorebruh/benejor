@@ -105,7 +105,7 @@ def write_existed_password(message: telebot.types.Message):  # writes password t
     connection = connect(host, user, passwd, database)
     cursor = connection.cursor()
     _id = message.from_user.id
-    password = message.text
+    password = validate(message.text)
     cursor.execute(
         f'INSERT INTO password (user, password, description) VALUES ({_id}, "{encrypt(password, _id)}", "{global_user_table[_id].description}");')  # save password in database
     connection.commit()
@@ -140,7 +140,24 @@ def write_password(message: telebot.types.Message): # generates and writes passw
 
 
 def find_password(message: telebot.types.Message):
+    passwords = []
+    descriptions = []
     description = message.text
+    connection = connect(host, user, passwd, database)
+    cursor = connection.cursor()
+    _id = message.from_user.id
+    cursor.execute(f"SELECT password, description FROM password WHERE user={_id} AND description LIKE '%{validate(description)}%'")
+    result = cursor.fetchall()
+    for each in result:
+        passwords.append(each[0])
+        if each[1] == "":
+            descriptions.append("epmty string")
+        else:
+            descriptions.append(each[1])
+    i = 0
+    for i in range(len(passwords)):
+        bot.send_message(message.from_user.id, f'password for {descriptions[i]} is {decrypt(passwords[i], _id)}')
+
 
 
 # main function
