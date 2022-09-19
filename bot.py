@@ -92,7 +92,7 @@ def get_setting_to_update(message: telebot.types.Message):  # gets info what set
         bot.send_message(message.from_user.id, "please use th buttons next time", reply_markup=basicMarkup)
 
 
-def ask_for_description(message: telebot.types.Message):  # writes description to global dictionary
+def ask_for_description_for_writing(message: telebot.types.Message):  # writes description to global dictionary
     global global_user_table
     description = validate(message.text).lower()  # make description standardized
     global_user_table[message.from_user.id] = UserRow(description)
@@ -114,7 +114,21 @@ def write_existed_password(message: telebot.types.Message):  # writes password t
     del global_user_table[_id]
 
 
-def write_password(message: telebot.types.Message): # generates and writes password or delegates it to write_existed_password
+def update_existed_password(message: telebot.types.Message):  # writes password that bot don't need to generate
+    connection = connect(host, user, passwd, database)
+    cursor = connection.cursor()
+    _id = message.from_user.id
+    password = validate(message.text)
+    cursor.execute(
+        f'UPDATE password SET password = "{encrypt(password, _id)}" WHERE user = {_id} AND description LIKE "%{global_user_table[_id].description}%";')  # save password in database
+    connection.commit()
+    bot.send_message(message.from_user.id, f"password is {password}")
+    bot.send_message(message.from_user.id, "password is successfully saved", reply_markup=basicMarkup)
+    del global_user_table[_id]
+
+
+def write_password(
+        message: telebot.types.Message):  # generates and writes password or delegates it to write_existed_password
     global global_user_table
     connection = connect(host, user, passwd, database)
     cursor = connection.cursor()
@@ -146,18 +160,52 @@ def find_password(message: telebot.types.Message):
     connection = connect(host, user, passwd, database)
     cursor = connection.cursor()
     _id = message.from_user.id
-    cursor.execute(f"SELECT password, description FROM password WHERE user={_id} AND description LIKE '%{validate(description)}%'")
+    cursor.execute(
+        f"SELECT password, description FROM password WHERE user={_id} AND description LIKE '%{validate(description)}%'")
     result = cursor.fetchall()
     for each in result:
         passwords.append(each[0])
         if each[1] == "":
-            descriptions.append("epmty string")
+            descriptions.append("empty string")
         else:
             descriptions.append(each[1])
-    i = 0
     for i in range(len(passwords)):
         bot.send_message(message.from_user.id, f'password for {descriptions[i]} is {decrypt(passwords[i], _id)}')
 
+
+def update_password(message: telebot.types.Message):
+    global global_user_table
+    connection = connect(host, user, passwd, database)
+    cursor = connection.cursor()
+    _id = message.from_user.id
+    if message.text == "write already existing password":
+        # ask for password
+        bot.send_message(message.from_user.id, "please write your password")
+        bot.register_next_step_handler(message, update_existed_password)
+    elif message.text == "generate new password":
+        # generate password
+        special_symbols, uppercase = get_settings(message)  # get settings
+        password = generate_password(special_symbols, uppercase)  # generate password
+        cursor.execute(
+            f'UPDATE password SET password = "{encrypt(password, _id)}" WHERE user = {_id} AND description LIKE "%{global_user_table[_id].description}%";')  # save password in database
+        connection.commit()
+        bot.send_message(message.from_user.id, f"password is {password}")
+        bot.send_message(message.from_user.id, "password is successfully updated", reply_markup=basicMarkup)
+        del global_user_table[_id]
+
+    else:
+        bot.send_message(message.from_user.id, "please use th buttons next time", reply_markup=basicMarkup)
+        del global_user_table[_id]
+
+
+def ask_for_description_for_updating(
+        message: telebot.types.Message):  # difference between for writing and for updating in callbacks
+    global global_user_table
+    description = validate(message.text).lower()  # make description standardized
+    global_user_table[message.from_user.id] = UserRow(description)
+    bot.send_message(message.from_user.id, "are you going to generate new password or save already exiting one?",
+                     reply_markup=passwordMarkup)
+    bot.register_next_step_handler(message, update_password)
 
 
 # main function
@@ -169,18 +217,23 @@ def main(message):
         bot.send_message(message.from_user.id,
                          "Welcome.\n I am bnejor the bot who saves your passwords and generates safe passwords.\nthe "
                          "passwords are not are not crypted because of schema's settings but dont need to worry, "
-                         "you anyway can change preset if you run the same bot on your own\nhave a nice experiense",
+                         "you anyway can change preset if you run the same bot on your own\nhave a nice experience",
                          reply_markup=basicMarkup)
 
     elif message.text == '✍️  write password':
         # write into database
         bot.send_message(message.from_user.id, "what the password will be used for?")
-        bot.register_next_step_handler(message, ask_for_description)
+        bot.register_next_step_handler(message, ask_for_description_for_writing)
 
     elif message.text == '🔍 find password':
         # find
         bot.send_message(message.from_user.id, "please enter something from description")
         bot.register_next_step_handler(message, find_password)
+
+    elif message.text == '🔄 update password':
+        # update
+        bot.send_message(message.from_user.id, "plesase enter something from description")
+        bot.register_next_step_handler(message, ask_for_description_for_updating)
 
     elif message.text == "⚙️ change generator's settings":
         # change generate_password()'s Trues and Falses
