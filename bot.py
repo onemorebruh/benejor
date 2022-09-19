@@ -1,231 +1,254 @@
-from config import *
 import telebot
 from telebot import types
+from config import *
 from functions import *
-from flask import Flask, request
 
 bot = telebot.TeleBot(token)
-app = Flask(__name__)
 
 
-class UserRow():  # for global_user_table only
-    spec = ""
-    caps = ""
-    id = 0
+class UserRow:  # saves global information for each user
     description = ""
-    password = ""
 
-    def __init__(self, spec, caps, _id, description):
-        self.spec = spec
-        self.caps = caps
-        self.id = _id
+    def __init__(self, description):
         self.description = description
-        self.password = generate_password(spec, caps)
 
 
-class StatusBar():
-    def __init__(self, spec, up):
-        self.spec = spec
-        self.up = up
+global_user_table = {}  # contains UserRows
+
+# basic buttons for bot's work
+basicMarkup = types.ReplyKeyboardMarkup()
+button_write = types.KeyboardButton('✍️  write password')
+button_find = types.KeyboardButton('🔍 find password')
+button_update = types.KeyboardButton('🔄 update password')
+button_settings = types.KeyboardButton("⚙️ change generator's settings")
+button_random_password = types.KeyboardButton("❔ get password without saving")
+# organizing of buttons
+basicMarkup.row(button_find, button_write)
+basicMarkup.row(button_update)
+basicMarkup.row(button_settings)
+basicMarkup.row(button_random_password)
+
+# settings buttons
+settingsMarkup = types.ReplyKeyboardMarkup()
+button_uppercase = types.KeyboardButton('uppercase')
+button_special_symbols = types.KeyboardButton('special symbols')
+# organizing of buttons
+settingsMarkup.row(button_uppercase)
+settingsMarkup.row(button_special_symbols)
+
+# new or existing password buttons
+passwordMarkup = types.ReplyKeyboardMarkup()
+button_new = types.KeyboardButton("generate new password")
+button_existed = types.KeyboardButton("write already existing password")
+# organizing of buttons
+passwordMarkup.row(button_new)
+passwordMarkup.row(button_existed)
 
 
-global_user_table = {}  # helps in using functions
-global_statuses = {}  # like user_table but simpler
-
-
-@bot.message_handler(content_types=['text'])
-def get_text_message(message):
-    # basic markup
-
-    markup = types.ReplyKeyboardMarkup()
-    button_write = types.KeyboardButton('✍️  write password')
-    button_find = types.KeyboardButton('🔍 find password')
-    button_update = types.KeyboardButton('🔄 update password')
-    button_settings = types.KeyboardButton("⚙️ change generator's settings")
-    button_random_password = types.KeyboardButton("❔ get password without saving")
-
-    markup.row(button_write)
-    markup.row(button_find)
-    markup.row(button_update)
-    markup.row(button_settings)
-    markup.row(button_random_password)
-
-    # configuration markup
-    conf = types.ReplyKeyboardMarkup()
-    specials = types.KeyboardButton("special symbols")
-    caps = types.KeyboardButton("upper words")
-
-    conf.row(specials)
-    conf.row(caps)
-
-    # the main code starts here
-    if message.text == '✍️  write password':
-        # write
-        bot.send_message(message.from_user.id, "what the password will be used for?")
-        bot.register_next_step_handler(message, ask_description)
-    elif message.text == '🔍 find password':
-        # find
-        bot.send_message(message.from_user.id, "please enter something from description")
-        bot.register_next_step_handler(message, find_password_step_one)
-    elif message.text == '🔄 update password':
-        # update
-        bot.send_message(message.from_user.id, "plesase enter something from description")
-        bot.register_next_step_handler(message, updete_step_one)
-    elif message.text == "⚙️ change generator's settings":
-        # change generate_password()'s Trues and Falses
-        bot.send_message(message.from_user.id, "please use following buttons to change settings", reply_markup=conf)
-        bot.register_next_step_handler(message, set_settings)
-    elif message.text == "❔ get password without saving":
-        bot.send_message(message.from_user.id, generate_password(True, True), reply_markup=markup)
-    elif message.text == "/start":
-        write_user(message)
-        bot.send_message(message.from_user.id,
-                         "Welcome.\n I am bnejor the bot who saves your passwords and generates safe passwords.\nthe "
-                         "passwords are not are not crypted because of schema's settings but dont need to worry, "
-                         "you anyway can change preset if you run the same bot on your own\nhave a nice experiense",
-                         reply_markup=markup)
-    else:
-        bot.send_message(message.from_user.id, "please use the buttons", reply_markup=markup)
-
-
-def find_password_step_one(message):
-    connection = connect(host, user, passwd, database)
-    description = message.text
-    if description == "'":
-        description = ""
-    list_of_passwords = find(validate(description), message.from_user.id, connection)
-    # format list to good looking string
-    list_of_passwords = str(list_of_passwords).replace(", ", "\n").replace("('", "").replace("[", "").replace("',)",
-                                                                                                              "").replace(
-        "]", "")
-    bot.send_message(message.from_user.id, list_of_passwords)
-
-
-def write_password_step_one(message):
-    # write markup
-    old_or_new = types.ReplyKeyboardMarkup()
-    buttonOld = types.KeyboardButton("write alreadey existing password")
-    buttonNew = types.KeyboardButton("generate new password")
-
-    old_or_new.row(buttonOld)
-    old_or_new.row(buttonNew)
-
-    if message.text == "write alreadey existing password":
-        bot.send_message(message.from_user.id, "type the password")
-        bot.register_next_step_handler(message, ask_password)
-    elif message.text == "generate new password":
-        bot.send_message(message.from_user.id,
-                         "everything is ok. now please write something and i will give you/update the password.\n how "
-                         "was your day?(this data will not be saved at all)")
-        bot.register_next_step_handler(message, writing_final)
-    else:
-        bot.send_message(message.from_user.id, "please use the buttons", reply_markup=old_or_new)
-
-
-def ask_description(message):
-    # write markup
-    old_or_new = types.ReplyKeyboardMarkup()
-    buttonOld = types.KeyboardButton("write already existing password")
-    buttonNew = types.KeyboardButton("generate new password")
-
-    old_or_new.row(buttonOld)
-    old_or_new.row(buttonNew)
-
-    global global_user_table
-    bot.send_message(message.from_user.id, "are you going to generate new password or save already exiting one?",
-                     reply_markup=old_or_new)
-    connection = connect(host, user, passwd, database)
-    spec, up = get_settings(message.from_user.id, connection)
-    global_user_table[str(message.from_user.id)] = UserRow(spec, up, message.from_user.id, message.text)
-    bot.register_next_step_handler(message, write_password_step_one)
-
-
-def writing_final(message):
-    # basic markup
-
-    markup = types.ReplyKeyboardMarkup()
-    buttonWrite = types.KeyboardButton('✍️  write password')
-    buttonFind = types.KeyboardButton('🔍 find password')
-    buttonUpdate = types.KeyboardButton('🔄 update password')
-    buttonSettings = types.KeyboardButton("⚙️ change generator's settings")
-    buttonRandomPassword = types.KeyboardButton("❔ get password without saving")
-
-    markup.row(buttonWrite)
-    markup.row(buttonFind)
-    markup.row(buttonUpdate)
-    markup.row(buttonSettings)
-    markup.row(buttonRandomPassword)
-
-    global global_user_table
-    connection = connect(host, user, passwd, database)
-    status = write(validate(global_user_table[str(message.from_user.id)].password),
-                   validate(global_user_table[str(message.from_user.id)].description), message.from_user.id, connection)
-    bot.send_message(message.from_user.id, "your new password is saved\n" + validate(
-        str(global_user_table[str(message.from_user.id)].password)), reply_markup=markup)
-    del global_user_table[str(message.from_user.id)]
-
-
-def ask_password(message):
-    # for old passwords only
-    global global_user_table
-    global_user_table[str(message.from_user.id)].password = message.text
-    bot.send_message(message.from_user.id, "just write something, and i will send you password back")
-    bot.register_next_step_handler(message, writing_final)
-
-
-def updete_step_one(message):
-    description = message.text
-    connection = connect(host, user, passwd, database)
-    password = generate_password(True, True)
-    update_password(password, description, message.from_user.id, connection)
-    bot.send_message(message.from_user.id, "password for " + validate(str(description)) + " is now\n" + str(password))
-
-
-def set_settings(message):
-    # basic markup
-
-    markup = types.ReplyKeyboardMarkup()
-    buttonWrite = types.KeyboardButton('✍️  write password')
-    buttonFind = types.KeyboardButton('🔍 find password')
-    buttonUpdate = types.KeyboardButton('🔄 update password')
-    buttonSettings = types.KeyboardButton("⚙️ change generator's settings")
-    buttonRandomPassword = types.KeyboardButton("❔ get password without saving")
-
-    markup.row(buttonWrite)
-    markup.row(buttonFind)
-    markup.row(buttonUpdate)
-    markup.row(buttonSettings)
-    markup.row(buttonRandomPassword)
-
-    global global_statuses
-    connection = connect(host, user, passwd, database)
-    spec, up = get_settings(message.from_user.id, connection)
-    if message.text == "special symbols":
-        if spec:
-            status = set_setting(message.from_user.id, connection, "specials", "F")
-        else:
-            status = set_setting(message.from_user.id, connection, "specials", "T")
-    elif message.text == "upper words":
-        if up:
-            status = set_setting(message.from_user.id, connection, "caps", "F")
-        else:
-            status = set_setting(message.from_user.id, connection, "caps", "T")
-    bot.send_message(message.from_user.id, status, reply_markup=markup)
-
-
-def write_user(message):
+# functions
+def add_user_to_database(message: telebot.types.Message):  # adds user for bot's work
     connection = connect(host, user, passwd, database)
     cursor = connection.cursor()
     _id = message.from_user.id
     try:
-        cursor.execute("CREATE TABLE user" + str(
-            _id) + "(id int AUTO_INCREMENT NOT NULL, date date NOT NULL, password varchar(200) NOT NULL, description "
-                  "varchar(255) DEFAULT NULL, PRIMARY KEY (id));")
-        connection.commit()
-        cursor.execute("INSERT INTO users (id) VALUES (" + str(_id) + ");")
+        cursor.execute("INSERT INTO user (id) VALUES (" + str(_id) + ");")
         connection.commit()
     except IndexError:
-        print(f'user number{_id} already exists')
+        print(f'user number {_id} already exists')
+
+
+def get_settings(message: telebot.types.Message) -> [int, int]:  # get settings for password generating
+    connection = connect(host, user, passwd, database)
+    cursor = connection.cursor()
+    _id = message.from_user.id
+    cursor.execute(f'SELECT specials, caps FROM user WHERE id = {_id};')
+    special_symbols, uppercase = cursor.fetchone()
+    return special_symbols, uppercase
+
+
+def set_setting(setting: str, message: telebot.types.Message) -> str:  # changes settings
+    connection = connect(host, user, passwd, database)
+    cursor = connection.cursor()
+    _id = message.from_user.id
+    cursor.execute(f'UPDATE user SET {setting}= !{setting} WHERE id = {_id};')
+    connection.commit()
+    cursor.execute(f'SELECT {setting} FROM user WHERE id = {_id};')
+    setting_value = cursor.fetchone()[0]
+    if setting_value == 0:
+        setting_value = "disabled"
+    else:
+        setting_value = "enabled"
+    return f'your {setting} is {setting_value}'
+
+
+def get_setting_to_update(message: telebot.types.Message):  # gets info what setting have to be changed
+    if message.text == "special symbols":
+        result = set_setting("specials", message)
+        bot.send_message(message.from_user.id, result, reply_markup=basicMarkup)
+    elif message.text == "uppercase":
+        result = set_setting("caps", message)
+        bot.send_message(message.from_user.id, result, reply_markup=basicMarkup)
+    else:
+        bot.send_message(message.from_user.id, "please use th buttons next time", reply_markup=basicMarkup)
+
+
+def ask_for_description_for_writing(message: telebot.types.Message):  # writes description to global dictionary
+    global global_user_table
+    description = validate(message.text).lower()  # make description standardized
+    global_user_table[message.from_user.id] = UserRow(description)
+    bot.send_message(message.from_user.id, "are you going to generate new password or save already exiting one?",
+                     reply_markup=passwordMarkup)
+    bot.register_next_step_handler(message, write_password)
+
+
+def write_existed_password(message: telebot.types.Message):  # writes password that bot don't need to generate
+    connection = connect(host, user, passwd, database)
+    cursor = connection.cursor()
+    _id = message.from_user.id
+    password = validate(message.text)
+    cursor.execute(
+        f'INSERT INTO password (user, password, description) VALUES ({_id}, "{encrypt(password, _id)}", "{global_user_table[_id].description}");')  # save password in database
+    connection.commit()
+    bot.send_message(message.from_user.id, f"password is {password}")
+    bot.send_message(message.from_user.id, "password is successfully saved", reply_markup=basicMarkup)
+    del global_user_table[_id]
+
+
+def update_existed_password(message: telebot.types.Message):  # writes password that bot don't need to generate
+    connection = connect(host, user, passwd, database)
+    cursor = connection.cursor()
+    _id = message.from_user.id
+    password = validate(message.text)
+    cursor.execute(
+        f'UPDATE password SET password = "{encrypt(password, _id)}" WHERE user = {_id} AND description LIKE "%{global_user_table[_id].description}%";')  # save password in database
+    connection.commit()
+    bot.send_message(message.from_user.id, f"password is {password}")
+    bot.send_message(message.from_user.id, "password is successfully saved", reply_markup=basicMarkup)
+    del global_user_table[_id]
+
+
+def write_password(
+        message: telebot.types.Message):  # generates and writes password or delegates it to write_existed_password
+    global global_user_table
+    connection = connect(host, user, passwd, database)
+    cursor = connection.cursor()
+    _id = message.from_user.id
+    if message.text == "write already existing password":
+        # ask for password
+        bot.send_message(message.from_user.id, "please write your password")
+        bot.register_next_step_handler(message, write_existed_password)
+    elif message.text == "generate new password":
+        # generate password
+        special_symbols, uppercase = get_settings(message)  # get settings
+        password = generate_password(special_symbols, uppercase)  # generate password
+        cursor.execute(
+            f'INSERT INTO password (user, password, description) VALUES ({_id}, "{encrypt(password, _id)}", "{global_user_table[_id].description}");')  # save password in database
+        connection.commit()
+        bot.send_message(message.from_user.id, f"password is {password}")
+        bot.send_message(message.from_user.id, "password is successfully saved", reply_markup=basicMarkup)
+        del global_user_table[_id]
+
+    else:
+        bot.send_message(message.from_user.id, "please use th buttons next time", reply_markup=basicMarkup)
+        del global_user_table[_id]
+
+
+def find_password(message: telebot.types.Message):
+    passwords = []
+    descriptions = []
+    description = message.text
+    connection = connect(host, user, passwd, database)
+    cursor = connection.cursor()
+    _id = message.from_user.id
+    cursor.execute(
+        f"SELECT password, description FROM password WHERE user={_id} AND description LIKE '%{validate(description)}%'")
+    result = cursor.fetchall()
+    for each in result:
+        passwords.append(each[0])
+        if each[1] == "":
+            descriptions.append("empty string")
+        else:
+            descriptions.append(each[1])
+    for i in range(len(passwords)):
+        bot.send_message(message.from_user.id, f'password for {descriptions[i]} is {decrypt(passwords[i], _id)}')
+
+
+def update_password(message: telebot.types.Message):
+    global global_user_table
+    connection = connect(host, user, passwd, database)
+    cursor = connection.cursor()
+    _id = message.from_user.id
+    if message.text == "write already existing password":
+        # ask for password
+        bot.send_message(message.from_user.id, "please write your password")
+        bot.register_next_step_handler(message, update_existed_password)
+    elif message.text == "generate new password":
+        # generate password
+        special_symbols, uppercase = get_settings(message)  # get settings
+        password = generate_password(special_symbols, uppercase)  # generate password
+        cursor.execute(
+            f'UPDATE password SET password = "{encrypt(password, _id)}" WHERE user = {_id} AND description LIKE "%{global_user_table[_id].description}%";')  # save password in database
+        connection.commit()
+        bot.send_message(message.from_user.id, f"password is {password}")
+        bot.send_message(message.from_user.id, "password is successfully updated", reply_markup=basicMarkup)
+        del global_user_table[_id]
+
+    else:
+        bot.send_message(message.from_user.id, "please use th buttons next time", reply_markup=basicMarkup)
+        del global_user_table[_id]
+
+
+def ask_for_description_for_updating(
+        message: telebot.types.Message):  # difference between for writing and for updating in callbacks
+    global global_user_table
+    description = validate(message.text).lower()  # make description standardized
+    global_user_table[message.from_user.id] = UserRow(description)
+    bot.send_message(message.from_user.id, "are you going to generate new password or save already exiting one?",
+                     reply_markup=passwordMarkup)
+    bot.register_next_step_handler(message, update_password)
+
+
+# main function
+
+@bot.message_handler(content_types=["text"])
+def main(message):
+    if message.text == "/start":
+        add_user_to_database(message)  # should create new user in database
+        bot.send_message(message.from_user.id,
+                         "Welcome.\n I am bnejor the bot who saves your passwords and generates safe passwords.\nthe "
+                         "passwords are not are not crypted because of schema's settings but dont need to worry, "
+                         "you anyway can change preset if you run the same bot on your own\nhave a nice experience",
+                         reply_markup=basicMarkup)
+
+    elif message.text == '✍️  write password':
+        # write into database
+        bot.send_message(message.from_user.id, "what the password will be used for?")
+        bot.register_next_step_handler(message, ask_for_description_for_writing)
+
+    elif message.text == '🔍 find password':
+        # find
+        bot.send_message(message.from_user.id, "please enter something from description")
+        bot.register_next_step_handler(message, find_password)
+
+    elif message.text == '🔄 update password':
+        # update
+        bot.send_message(message.from_user.id, "plesase enter something from description")
+        bot.register_next_step_handler(message, ask_for_description_for_updating)
+
+    elif message.text == "⚙️ change generator's settings":
+        # change generate_password()'s Trues and Falses
+        bot.send_message(message.from_user.id, "please use following buttons to change settings",
+                         reply_markup=settingsMarkup)
+        bot.register_next_step_handler(message, get_setting_to_update)
+
+    elif message.text == "❔ get password without saving":
+        # get settings
+        special_symbols, uppercase = get_settings(message)
+        # generate password
+        bot.send_message(message.from_user.id, generate_password(special_symbols, uppercase), reply_markup=basicMarkup)
+
+    else:
+        bot.send_message(message.from_user.id, "please use the buttons", reply_markup=basicMarkup)
 
 
 while True:
@@ -233,14 +256,3 @@ while True:
         bot.polling(none_stop=True, interval=0)
     except IndexError:
         pass
-
-
-@app.route("/" + token, methods['POST'])
-def getMessage():
-    bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
-    return "!", 200
-
-
-bot.remote_webhook()
-bot.set_webhook("https://test.com/" + token)
-app.run()
