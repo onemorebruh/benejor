@@ -8,6 +8,8 @@ from aiogram.filters import CommandStart
 from aiogram.types import Message
 from aiogram.utils.markdown import hbold
 
+import markups
+
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 OWNER_NAME = os.getenv("OWNER_NAME")

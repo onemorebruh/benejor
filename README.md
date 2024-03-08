@@ -7,7 +7,18 @@
 benejor is a simple telegrambot on python and mysql
 it saves users' passwords. this bot was made to help user in password management by generating and saving passwords.
 
+## Structure
 
+|-`main.py` - main file to run bot
+|-`.env` - config file of bot
+|\\-`dependenices` - directory with dependencies of bot
+||-`requirements.txt` - file with python packages to install
+||-`directory.txt` - file with words password generator uses (can be modified without aftermath)
+|-`pass_gen_lib.py` - library i wrote for generating passwords
+|-`markups.py` - file with markups used in bot
+|-`README.md` - file you are reading right now
+|-`test.py` - file with tests
+|-`env.example` - example of `.env` file
 
 ## Instalation
 1. `git clone https://github.com/onemorebruh/benejor.git`
@@ -49,3 +60,4 @@ Rewrite on aiogram
 
 UX
 - [ ] add `copy password` button
+- [ ] make generator settings button show info and buttons to change settings
