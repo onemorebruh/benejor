@@ -1,3 +1,5 @@
 .idea/
 __pycache__/
 dependencies/sql_dump.sql
+.env
+venv/
