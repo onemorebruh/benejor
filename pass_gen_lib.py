@@ -19,8 +19,8 @@ dictionary = []
 # password generator
 
 def charge(list_of_elements: list, maximum: int, caps: int) -> str:
-    global host, user, passwd, database
-    connection = connect(host, user, passwd, database)
+    global DB_HOST, DB_USER, DB_PASSWORD, DB_DATABASE
+    connection = connect(DB_HOST, DB_USER, DB_PASSWORD, DB_DATABASE)
     string = ''.join(list_of_elements)
     the_biggest_element = {"index": 0, "len": 0}
     while len(string) < maximum:

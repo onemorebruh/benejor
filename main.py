@@ -1,26 +1,21 @@
 import asyncio
-from dotenv import load_dotenv
-import os
 
 from aiogram import Bot, Dispatcher, Router, types
-from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
 from aiogram.types import Message
-from aiogram.utils.markdown import hbold
 
 import markups
-
-load_dotenv()
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-OWNER_NAME = os.getenv("OWNER_NAME")
+from config import *
+from handlers.handler_commands import *
 
 # All handlers should be attached to the Router (or Dispatcher)
 dp = Dispatcher()
 
 
 @dp.message(CommandStart())
-async def command_start_handler(message: Message) -> None:
-    await message.answer(f"Welcome.\nI am bnejor. The bot who saves your passwords and generates safe passwords.\nYour passwords would be saved on {OWNER_NAME}\'s machine.\nHave a nice experience")
+async def command_start_handler(message: types.Message):
+    await init_user(message)
+    return
 
 
 @dp.message()
