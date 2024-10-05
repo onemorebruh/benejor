@@ -1,5 +1,4 @@
 from aiogram.types import Message
-from mysql.connector import connect
 
 from config import *
 from markups import *

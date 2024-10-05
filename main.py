@@ -7,6 +7,7 @@ from aiogram.types import Message
 import markups
 from config import *
 from handlers.handler_commands import *
+from handlers.handler_random_password import display_random_password
 
 # All handlers should be attached to the Router (or Dispatcher)
 dp = Dispatcher()
@@ -19,18 +20,11 @@ async def command_start_handler(message: types.Message):
 
 
 @dp.message()
-async def echo_handler(message: types.Message) -> None:
-    """
-    Handler will forward receive a message back to the sender
-
-    By default, message handler will handle all message types (like a text, photo, sticker etc.)
-    """
-    try:
-        # Send a copy of the received message
-        await message.send_copy(chat_id=message.chat.id)
-    except TypeError:
-        # But not all the types is supported to be copied so need to handle it
-        await message.answer("Nice try!")
+async def message_router(message: types.Message) -> None:
+    if message.text == "❔ get password without saving":
+        await display_random_password(message)
+    else:
+        await message.answer("the text you have just send it not a command. please the button")
 
 
 async def main() -> None:
@@ -41,4 +35,7 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("bot have been shut down")
