@@ -10,3 +10,6 @@ class MessageHandlingState(StatesGroup):
     # is active after change settings button press
     STATE_SETTINGS = State()
 
+    # doesn't need any markup
+    # is active after find button press
+    STATE_SEARCHING = State()

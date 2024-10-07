@@ -9,7 +9,7 @@ async def init_user(message: Message) -> None:
     # init new user
     _id = message.from_user.id
     try:
-        DB_execute_query("INSERT INTO user (id) VALUES (" + str(_id) + ");")
+        db_execute_query("INSERT INTO user (id) VALUES (" + str(_id) + ");")
     except:
         print(f'user number {_id} already exists')
     # send new user message

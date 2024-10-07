@@ -3,7 +3,7 @@ from aiogram.filters import Command, StateFilter
 from aiogram.types import Message
 
 from markups import *
-from MessageHandlingState import *
+from message_handling_state import *
 
 
 async def show_settings(message: Message, state: FSMContext):
