@@ -1,3 +1,4 @@
+from aiogram.enums import ParseMode
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
@@ -11,8 +12,10 @@ async def find_password(message: Message, state: FSMContext):
 
     # display each password
     for key in passwords.keys():
-        await message.answer(text=f"password for {key} is")
-        await message.answer(text=f"{passwords[key]}")
+        await message.answer(text=f"<b>password for {key} is</b>",
+                             parse_mode=ParseMode.HTML)
+        await message.answer(text=f"<code>{passwords[key]}</code>",
+                             parse_mode=ParseMode.HTML)
 
     # lose state
     await state.set_state(MessageHandlingState.STATE_DEFAULT)

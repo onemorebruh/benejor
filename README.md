@@ -4,8 +4,8 @@
 
 ## Description
 
-benejor is a simple telegrambot on python and mysql
-it saves users' passwords. this bot was made to help user in password management by generating and saving passwords.
+Benejor is a simple telegram bot on python and mysql.
+It saves users' passwords. This bot was made to help user in password management by generating and saving passwords.
 
 ## Structure
 ```
@@ -20,7 +20,7 @@ it saves users' passwords. this bot was made to help user in password management
 |-`test.py` - file with tests
 |-`env.example` - example of `.env` file
 ```
-## Instalation
+## Installation
 1. `git clone https://github.com/onemorebruh/benejor.git`
 2. create database and user
 3. give privileges to this user
@@ -28,7 +28,9 @@ it saves users' passwords. this bot was made to help user in password management
 5. enter all data script asks
 6. run the controller.py
 
-## Functions
+## Usage
+
+### pass_gen_lib
 
 ```python
 from pass_gen_lib import generate_password, encrypt, decrypt
@@ -56,8 +58,8 @@ Dockerize
 Rewrite on aiogram
 - [x] write markups
 - [ ] implements same algorithm as before
-- [ ] configure HTML parsing
+- [x] configure HTML parse mode
 
 UX
-- [ ] add `copy password` button
+- [x] copy password by click
 - [ ] make generator settings button show info and buttons to change settings
