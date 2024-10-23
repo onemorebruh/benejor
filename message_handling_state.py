@@ -13,3 +13,15 @@ class MessageHandlingState(StatesGroup):
     # doesn't need any markup
     # is active after find button press
     STATE_SEARCHING = State()
+
+    # shows old_or_new_markup
+    # is active when user have to choose are they going to generate password or write existing one
+    STATE_WRITING_STEP1 = State()
+
+    # doesn't need any markup
+    # is active when user have to type description of password
+    STATE_WRITING_STEP2 = State()
+
+    # doesn't need any markup
+    # is active when user writes already existing password
+    STATE_WRITING_STEP3 = State()

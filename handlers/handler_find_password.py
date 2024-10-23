@@ -12,9 +12,7 @@ async def find_password(message: Message, state: FSMContext):
 
     # display each password
     for key in passwords.keys():
-        await message.answer(text=f"<b>password for {key} is</b>",
-                             parse_mode=ParseMode.HTML)
-        await message.answer(text=f"<code>{passwords[key]}</code>",
+        await message.answer(text=f"password for <b>{key}</b> is <code>{passwords[key]}</code>",
                              parse_mode=ParseMode.HTML)
 
     # lose state

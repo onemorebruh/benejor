@@ -1,6 +1,7 @@
 # Benejor
 
 * status - DEV
+* version - 2.0.0
 
 ## Description
 
@@ -62,4 +63,4 @@ Rewrite on aiogram
 
 UX
 - [x] copy password by click
-- [ ] make generator settings button show info and buttons to change settings
+- [x] make generator settings button show info and buttons to change settings
