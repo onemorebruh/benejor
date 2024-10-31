@@ -58,7 +58,7 @@ Dockerize
 
 Rewrite on aiogram
 - [x] write markups
-- [ ] implements same algorithm as before
+- [x] implements same algorithm as before
 - [x] configure HTML parse mode
 
 UX

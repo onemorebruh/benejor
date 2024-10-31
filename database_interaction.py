@@ -1,7 +1,7 @@
 from mysql.connector import connect
 
 from config import DB_HOST, DB_USER, DB_PASSWORD, DB_DATABASE
-from pass_gen_lib import make_valid, decrypt
+from pass_gen_lib import make_valid, decrypt, encrypt
 
 from usersetting import UserSetting
 
@@ -59,3 +59,9 @@ def db_change_user_setting(user_id: int, setting: UserSetting):
     cursor.execute(f"UPDATE user SET {setting.value} = {not setting_value} WHERE id = {user_id};")
     connection.commit()
     return
+
+
+def db_write_password(user_id: int, description, value):
+    value = make_valid(value)
+    value = encrypt(value, user_id)
+    db_execute_query(f"INSERT INTO password (user, description, password) VALUE ({user_id}, '{description}', '{value}');")
