@@ -11,7 +11,7 @@ import random
 import mysql.connector
 from mysql.connector import Error
 import random
-from config import *
+from config import DB_HOST, DB_USER, DB_PASSWORD, DB_DATABASE
 
 dictionary = []
 
@@ -19,8 +19,7 @@ dictionary = []
 # password generator
 
 def charge(list_of_elements: list, maximum: int, caps: int) -> str:
-    global host, user, passwd, database
-    connection = connect(host, user, passwd, database)
+    connection = connect(DB_HOST, DB_USER, DB_PASSWORD, DB_DATABASE)
     string = ''.join(list_of_elements)
     the_biggest_element = {"index": 0, "len": 0}
     while len(string) < maximum:
@@ -32,7 +31,7 @@ def charge(list_of_elements: list, maximum: int, caps: int) -> str:
                 cursor.execute("SELECT word FROM dictionary;")
                 dictionary = cursor.fetchall()
                 print("dictionary is loaded")
-            except IndexError:
+            except (IndexError, AttributeError):
                 dictionary = ["sorry", "database", "does", "not", "work"]
 
         number = random.randint(0, len(dictionary) - 1)
@@ -89,7 +88,8 @@ def generate_password(special_symbols: int, caps: int) -> str:
     return password
 
 
-def validate(password: str) -> str:
+# replaces tricky charachters from string
+def make_valid(password: str) -> str:
     password = password.replace("`", "")
     password = password.replace(";", "")
     password = password.replace('"', "")
@@ -116,7 +116,7 @@ def connect(host: str, user: str, passwd: str, database: str) -> mysql.connector
 
 # crypting
 
-def encrypt(data: str, key:int) -> str:
+def encrypt(data: str, key: int) -> str:
     encoded_data = data
     key = [int(x) for x in str(key)]
     i = 0
@@ -133,7 +133,7 @@ def encrypt(data: str, key:int) -> str:
         crypted_data[i] = str(crypted_data[i]) + random.choice(["A", "B", "C", "D", "E", "F"])
         i += 1
     encoded_data = str(crypted_data)
-    encoded_data = validate(encoded_data)
+    encoded_data = make_valid(encoded_data)
     encoded_data = encoded_data.replace("[", "").replace("]", "").replace(",", "")
     return encoded_data
 
@@ -143,7 +143,9 @@ def decrypt(data: str, key: int) -> str:
     i = 0
     j = 0
     # convert string to array of numbers
-    encrypted_data = data.replace("A", " ").replace("B", " ").replace("C", " ").replace("D", " ").replace("E", " ").replace("F", " ")
+    encrypted_data = data.replace("A", " ").replace("B", " ").replace("C", " ").replace("D", " ").replace("E",
+                                                                                                          " ").replace(
+        "F", " ")
     encrypted_data = encrypted_data.split(" ")
     # math changes numbers to correct number for each sign
     while i < (len(encrypted_data) - 1):
