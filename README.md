@@ -10,24 +10,35 @@ It saves users' passwords. This bot was made to help user in password management
 
 ## Structure
 ```
+|-`config.py` - configuration file
+|-`database_interaction.py` - functions bot uses for working with database
+|-`dispatcher.py` - routes messages
+|-`dump.sql` - database dump
+|-`handlers/` - directory with ligic of bot
+|   |-`__init__.py` - init file
+|   |-`handler_commands.py` - contain logic of commands such as `/start`
+|   |-`handler_find_password.py` - contain logic of the finding password in database
+|   |-`handler_random_password.py` - contain logic of getting random password
+|   |-`handler_settings.py` - contain logic of changing settings of password generator
+|   |-`handler_write.py` - contain logic of writing new password into database
+|-`header.py` contain variables which have to be inited but should not be in `main.py`
 |-`main.py` - main file to run bot
-|-`.env` - config file of bot
-|-`dependenices` - directory with dependencies of bot
-|   |-`requirements.txt` - file with python packages to install
-|   |-`directory.txt` - file with words password generator uses (can be modified without aftermath)
-|-`pass_gen_lib.py` - library i wrote for generating passwords
 |-`markups.py` - file with markups used in bot
+|-`message_handling_state.py` - states for FSM
+|-`pass_gen_lib.py` - library i wrote for generating passwords
 |-`README.md` - file you are reading right now
+|-`requirements.txt` - file with python packages to install
 |-`test.py` - file with tests
-|-`env.example` - example of `.env` file
+|-`usersettings.py` - enum with settings user have
 ```
 ## Installation
 1. `git clone https://github.com/onemorebruh/benejor.git`
 2. create database and user
 3. give privileges to this user
-4. `sudo ./get_started`
-5. enter all data script asks
-6. run the controller.py
+4. load dump to database
+5. fill config.py with required data
+6. install python requirements
+7. run the main.py
 
 ## Usage
 
@@ -46,9 +57,12 @@ print(decrypt("116C99A108C112E71D86C75D79C72D82D70C67A87A108B122C111D102D117B105
 ```
 
 ## Configuration
-- python:3.8.10
-- mysql:8.0.26
-- ubuntu:20.04
+
+| program | version |
+|---------|---------|
+| python  | 3.9.2   |
+| mariadb | 10.5.28 |
+| debian  | 11      |
 
 ## TODO
 
